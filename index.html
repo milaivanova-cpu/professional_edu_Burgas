@@ -66,7 +66,6 @@ ul.tight{margin:6px 0 0;padding-left:20px;font-size:15px;color:#4E5453} ul.tight
 </div></header>
 <nav><div class="wrap" role="tablist">
 <button role="tab" aria-selected="true" data-t="t1">Обзор</button>
-<button role="tab" data-t="t2">Карта</button>
 <button role="tab" data-t="t3">Училища</button>
 <button role="tab" data-t="t4">Направления</button>
 <button role="tab" data-t="t7">ПМС № 76</button>
@@ -90,21 +89,6 @@ ul.tight{margin:6px 0 0;padding-left:20px;font-size:15px;color:#4E5453} ul.tight
 <div class="tw" id="vart2"></div>
 <h3>Запълняемост по планиран размер на паралелката</h3>
 <div class="tw" id="szt"></div>
-</section>
-
-<section role="tabpanel" id="t2" hidden>
-<h2>Разположение на училищата</h2>
-<p class="lede">Схематично разположение по координати, без топографска основа. Цвят по запълняемост, големина по брой планирани места.</p>
-<div class="ctrl"><label>Показване: <select id="mmode">
-<option value="poo">професионални паралелки</option>
-<option value="all">всички паралелки</option></select></label></div>
-<div class="mapbox" id="map"></div>
-<div class="legend">
-<span><i class="dot" style="background:#C7503F"></i>под 60%</span>
-<span><i class="dot" style="background:#E0A040"></i>60–84%</span>
-<span><i class="dot" style="background:#00C19F"></i>85% и нагоре</span>
-<span><i class="dot" style="background:#B9C0BF"></i>без професионален прием</span></div>
-<p class="cap" style="margin-top:10px">Координати от картата на училищата на РУО-Бургас за приема 2025/2026. ОбУ „Христо Ботев“, с. Зидарово липсва в оригинала и е поставено приблизително.</p>
 </section>
 
 <section role="tabpanel" id="t3" hidden>
@@ -171,7 +155,7 @@ ul.tight{margin:6px 0 0;padding-left:20px;font-size:15px;color:#4E5453} ul.tight
 <li>Реализиран държавен план-прием за 2025/2026 — Заповед № РД-06-691 от 12.09.2025 г., приложения № 1 и № 2</li>
 <li>Кодове по паралелки с балообразуване за 2026/2027 — РУО-Бургас</li>
 <li>Свободни места след четвърто класиране, 13.08.2026 г. — РУО-Бургас</li>
-<li>Интерактивна карта на училищата с прием след VII клас 2025/2026 — РУО-Бургас</li>
+
 <li>Списък на професиите за професионално образование и обучение — Заповед № РД09-2230 от 09.08.2024 г. на министъра на образованието и науката</li>
 <li>Постановление № 76 на Министерския съвет от 3 юли 2026 г. — обн. ДВ, бр. 62 от 07.07.2026 г.</li>
 </ul>
@@ -363,41 +347,5 @@ T('napt').innerHTML=rowsTable(NAPS,[['Направление',n=>`<span style="c
   rowsTable(s.items,[['Училище',r=>esc(r.school)],['Място',r=>esc(r.place)],
    ['Мин. бал',r=>nm(r.min1),'n'],['Записани',r=>`${r.enr} / ${r.plan}`,'n'],
    ['',r=>bar(r.enr/r.plan)],['%',r=>pc(r.enr/r.plan),'n']])).join('');
-})();
-(function(){
- const el=T('map'),W=1000,H=580,pad=52;
- const lats=D.schools.map(s=>s.lat),lons=D.schools.map(s=>s.lon);
- const la0=Math.min(...lats)-.06,la1=Math.max(...lats)+.06;
- const lo0=Math.min(...lons)-.07,lo1=Math.max(...lons)+.07;
- const k=Math.cos(42.6*Math.PI/180);
- const sc=Math.min((W-2*pad)/((lo1-lo0)*k),(H-2*pad)/(la1-la0));
- const ox=pad+((W-2*pad)-(lo1-lo0)*k*sc)/2, oy=pad+((H-2*pad)-(la1-la0)*sc)/2;
- const X=v=>ox+(v-lo0)*k*sc, Y=v=>oy+(la1-v)*sc;
- function data(){const mode=T('mmode').value;
-  return D.schools.map(s=>{const pl=mode==='poo'?s.poo_plan:s.poo_plan+s.pr_plan;
-   const en=mode==='poo'?s.poo_enr:s.poo_enr+s.pr_enr;
-   return {...s,pl,en,has:pl>0,rate:pl>0?en/pl:0};});}
- function draw(){
-  const d=data().slice().sort((a,b)=>b.pl-a.pl); let g='';
-  for(let v=Math.ceil(lo0*5)/5;v<=lo1;v+=0.2){const x=X(v);
-   g+=`<line x1="${x.toFixed(1)}" y1="${oy}" x2="${x.toFixed(1)}" y2="${(oy+(la1-la0)*sc).toFixed(1)}" stroke="#EDF0F0"/>`+
-      `<text x="${x.toFixed(1)}" y="${(oy+(la1-la0)*sc+16).toFixed(1)}" font-size="10" fill="#B9C0BF" text-anchor="middle">${v.toFixed(1)}°E</text>`;}
-  for(let v=Math.ceil(la0*5)/5;v<=la1;v+=0.2){const y=Y(v);
-   g+=`<line x1="${ox}" y1="${y.toFixed(1)}" x2="${(ox+(lo1-lo0)*k*sc).toFixed(1)}" y2="${y.toFixed(1)}" stroke="#EDF0F0"/>`+
-      `<text x="${(ox-8).toFixed(1)}" y="${(y+3).toFixed(1)}" font-size="10" fill="#B9C0BF" text-anchor="end">${v.toFixed(1)}°N</text>`;}
-  const towns={}; d.forEach(s=>{if(!towns[s.place])towns[s.place]={x:X(s.lon),y:Y(s.lat)}});
-  Object.entries(towns).forEach(([n,p])=>{g+=`<text x="${p.x.toFixed(1)}" y="${(p.y-17).toFixed(1)}" text-anchor="middle" font-size="11" fill="#8B9392">${esc(n)}</text>`;});
-  d.forEach(s=>{const r=s.has?Math.max(5,Math.min(19,Math.sqrt(s.pl)*1.45)):4;
-   g+=`<circle class="mk" data-c="${s.code}" cx="${X(s.lon).toFixed(1)}" cy="${Y(s.lat).toFixed(1)}" r="${r.toFixed(1)}" fill="${s.has?col(s.rate):'#B9C0BF'}" fill-opacity=".85" stroke="#fff" stroke-width="1.5"/>`;});
-  const km=20,px=km/111.32*k*sc;
-  g+=`<line x1="${pad}" y1="${H-22}" x2="${(pad+px).toFixed(1)}" y2="${H-22}" stroke="#8B9392" stroke-width="2"/>`+
-     `<text x="${(pad+px+8).toFixed(1)}" y="${H-18}" font-size="11" fill="#8B9392">${km} км</text>`;
-  el.innerHTML=`<svg viewBox="0 0 ${W} ${H}" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="Разположение на училищата с прием в VIII клас в област Бургас">${g}</svg>`;
-  el.querySelectorAll('.mk').forEach(c=>{const s=d.find(z=>z.code===c.dataset.c);
-   const h=schoolTip(s)+(s.note?`<br><br><span style="color:#B9C0BF">${esc(s.note)}</span>`:'')+(s.poo_plan?'':'<br><br>Без професионални паралелки');
-   c.style.cursor='pointer';
-   c.onmouseenter=e=>showTip(e,h);c.onmousemove=e=>showTip(e,h);c.onmouseleave=hideTip;c.onclick=e=>showTip(e,h);});
- }
- T('mmode').onchange=draw;draw();
 })();
 </script></body></html>
